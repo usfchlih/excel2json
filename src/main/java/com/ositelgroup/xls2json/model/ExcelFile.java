@@ -5,7 +5,9 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
-
+/**
+ * Entity to hold ExcelFile Info
+ */
 @Entity
 public class ExcelFile {
 

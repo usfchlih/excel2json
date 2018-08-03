@@ -20,7 +20,9 @@ import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
 
-
+/**
+ * Service for uploading files
+ */
 @Service
 public class FileUploaderService {
 
