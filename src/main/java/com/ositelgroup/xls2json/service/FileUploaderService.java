@@ -58,7 +58,17 @@ public class FileUploaderService {
      */
     public String uploadXlsFile(Long pId, MultipartFile pFile) {
 
+        if((pFile!=null)&&(pFile.isEmpty())){
+            LOGGER.error(" File couldn't uploaded " ,pId);
+            return "{}";
+        }
         Optional<ExcelFile> fileHolder = excelFileRepository.findById(pId);
+        if(!fileHolder.isPresent()) {
+            LOGGER.error("File with id = {} hasn't been added yet, " +
+                    "Please use the WS /ositel/addExcelFile to add it",pId);
+            //return an empty String
+            return "{}";
+        }
         ExcelFile xlsFile = fileHolder.get();
 
         if(xlsFile != null) {
@@ -76,8 +86,6 @@ public class FileUploaderService {
 
 
         String filename = StringUtils.cleanPath(pFile.getOriginalFilename());
-
-        LOGGER.info("Root path : {}", STORE_LOCATION.getRoot());
 
         if (filename.contains("..")) {
             // This is a security check
