@@ -4,7 +4,6 @@ package com.ositelgroup.xls2json.web;
 import com.ositelgroup.xls2json.service.FileUploaderService;
 import com.ositelgroup.xls2json.service.Xls2JsonService;
 import com.ositelgroup.xls2json.service.XlsCellUpdaterService;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,8 +33,6 @@ public class Xls2JsonController {
     @PutMapping("/ositel/addExcelFile")
     public Long addExcelFile(@RequestParam("pFileName") String pFileName) {
        return fileUploaderService.addXlsFile(pFileName).getId();
-       //TODO create an object xlsFile and add it as attribute to the Session
-       //The Id returned here will be used as {idExcelFile} in uploadExcelFile
     }
 
 

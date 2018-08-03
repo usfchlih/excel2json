@@ -20,38 +20,68 @@ import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
 
+
 @Service
 public class FileUploaderService {
 
-    private static final Logger logger = LoggerFactory.getLogger(FileUploaderService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileUploaderService.class);
 
     private static final Path STORE_LOCATION = Paths.get("upload_repo");
+
 
     @Autowired
     private ExcelFileRepository excelFileRepository;
 
 
     // add an Excel file , choose a name
+
+    /**
+     * This method will create an object ExcelFile and store it in an h2 database
+     * to update later on when the actual file will uploaded
+     *
+     * @param pFileName fileName chosen by the client
+     * @return
+     */
     public ExcelFile addXlsFile(String pFileName){
+
         ExcelFile xlsFile = new ExcelFile(pFileName, false);
         return excelFileRepository.save(xlsFile);
     }
 
 
-    // Upload an excel file
+
+    /**
+     * Upload an Excel file
+     * @param pId database auto generated Id
+     * @param pFile
+     * @return Filename of the uploaded Excel file.
+     */
     public String uploadXlsFile(Long pId, MultipartFile pFile) {
 
         Optional<ExcelFile> fileHolder = excelFileRepository.findById(pId);
         ExcelFile xlsFile = fileHolder.get();
 
+        if(xlsFile != null) {
+            if(xlsFile.isUploaded()){
+                // a behavior here should be specified
+                LOGGER.warn("This file {} has already been uploaded, The stored file will be overwritten",
+                        xlsFile.getFileName());
+            }
+        }else {
+            LOGGER.error("File hasn't been added yet, " +
+                    "Please use the WS /ositel/addExcelFile to add it");
+            //return an empty String
+            return "{}";
+        }
+
 
         String filename = StringUtils.cleanPath(pFile.getOriginalFilename());
 
-        logger.info("Root path : {}", STORE_LOCATION.getRoot());
+        LOGGER.info("Root path : {}", STORE_LOCATION.getRoot());
 
         if (filename.contains("..")) {
             // This is a security check
-            logger.error("Cannot store file with relative path outside current directory : {}", filename);
+            LOGGER.error("Cannot store file with relative path outside current directory : {}", filename);
         }
         File directory = new File(STORE_LOCATION.toString());
         try (InputStream inputStream = pFile.getInputStream()) {
@@ -66,7 +96,7 @@ public class FileUploaderService {
                     StandardCopyOption.REPLACE_EXISTING);
 
                     xlsFile.setUploaded(true);
-
+                    xlsFile.setPath(STORE_LOCATION.toString() + File.separator + xlsFile.getFileName());
 
             // update stored XlsFile
             excelFileRepository.save(xlsFile);

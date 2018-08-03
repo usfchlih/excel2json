@@ -4,7 +4,6 @@ package com.ositelgroup.xls2json.model;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.Lob;
 
 
 @Entity
@@ -15,7 +14,7 @@ public class ExcelFile {
     private long id;
     private String fileName;
     private boolean isUploaded;
-
+    private String path;
 
     public ExcelFile() {
     }
@@ -46,6 +45,14 @@ public class ExcelFile {
 
     public boolean isUploaded() {
         return isUploaded;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public void setUploaded(boolean uploaded) {

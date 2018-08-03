@@ -4,11 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
+import com.ositelgroup.xls2json.model.ExcelFile;
 import com.ositelgroup.xls2json.model.ExcelFileRepository;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.ss.usermodel.Cell;
@@ -23,9 +22,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class Xls2JsonService {
 
-    private static final Logger logger = LoggerFactory.getLogger(FileUploaderService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileUploaderService.class);
 
-    private static final Path STORE_LOCATION = Paths.get("upload_repo");
 
     @Autowired
     private ExcelFileRepository excelFileRepository;
@@ -39,7 +37,25 @@ public class Xls2JsonService {
     public ArrayList<ArrayList<Object>> convert(String pFileName) throws IOException {
 
         //get filename from database
-        String filepath = STORE_LOCATION.toString() + File.separator + excelFileRepository.findByFileName(pFileName).getFileName();
+
+        String filepath = null;
+        //search for ExcelFile in the database
+        ExcelFile xlsFile = excelFileRepository.findByFileName(pFileName);
+        if(xlsFile != null) {
+            filepath = xlsFile.getPath();
+            if(filepath == null) {
+                LOGGER.error("File added but not uploaded," +
+                        "Please use the WS /ositel/{idExcelFile}/uploadFile to upload your file");
+                //return an empty ArrayList
+                return  new ArrayList<ArrayList<Object>>();
+            }
+        } else {
+            LOGGER.error("File hasn't been added yet, " +
+                    "Please use the WS /ositel/addExcelFile to add it");
+            //return an empty ArrayList
+            return  new ArrayList<ArrayList<Object>>();
+        }
+
         InputStream InputStream = new FileInputStream(new File(filepath));
         XSSFWorkbook workBook = new XSSFWorkbook(InputStream);
         XSSFSheet sheet = workBook.getSheetAt(0);
@@ -116,6 +132,10 @@ public class Xls2JsonService {
     }
 
     public String toJson(ArrayList<ArrayList<Object>> pListOfCellValues, String pFileName) {
+
+        if(pListOfCellValues.isEmpty()) {
+            return "{}";
+        }
 
         StringBuilder jsonStr = new StringBuilder();
         jsonStr.append("{\"fileName\":" + "\"" + pFileName + "\"");

@@ -1,6 +1,7 @@
 package com.ositelgroup.xls2json.service;
 
 
+import com.ositelgroup.xls2json.model.ExcelFile;
 import com.ositelgroup.xls2json.model.ExcelFileRepository;
 
 import org.apache.poi.ss.usermodel.Cell;
@@ -17,15 +18,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
 
 @Service
 public class XlsCellUpdaterService {
 
-    //TODO - Load the Excel work book
-    private static final Logger logger = LoggerFactory.getLogger(FileUploaderService.class);
-    private static final Path STORE_LOCATION = Paths.get("upload_repo");
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileUploaderService.class);
 
 
     @Autowired
@@ -35,8 +33,25 @@ public class XlsCellUpdaterService {
             String str = "pCol : "+ pCol +", pLine: "+ pLine +", pValue: "+ pValue+", pFileName : "+pFileName;
         try {
 
-            //get filename from database
-            String filepath = STORE_LOCATION.toString() + File.separator + pFileName;
+            String filepath = null;
+            //search for ExcelFile in the database
+            ExcelFile xlsFile = excelFileRepository.findByFileName(pFileName);
+
+            if(xlsFile != null) {
+                filepath = xlsFile.getPath();
+                if(filepath == null) {
+                    LOGGER.error("File added but not uploaded," +
+                            "Please use the WS /ositel/{idExcelFile}/uploadFile to upload your file");
+                    //return an empty String
+                    return "{}";
+
+
+                }
+            } else {
+                LOGGER.error("Please use the following WS /ositel/addExcelFile to add your file");
+                return "{}";
+            }
+
             InputStream InputStream = new FileInputStream(new File(filepath));
             XSSFWorkbook workBook = new XSSFWorkbook(InputStream);
 
